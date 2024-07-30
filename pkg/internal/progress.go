@@ -1,4 +1,4 @@
-package main
+package internal
 
 import (
 	"sync/atomic"
@@ -15,6 +15,10 @@ type ProgressReporter struct {
 	written    uint64
 	toTransfer uint64
 	shutdown   <-chan struct{}
+}
+
+func NewProgressReporter(toTransfer uint64, shutdown <-chan struct{}) ProgressReporter {
+	return ProgressReporter{read: 0, written: 0, toTransfer: toTransfer, shutdown: shutdown}
 }
 
 // ReportBytesRead tells the reporter that
@@ -39,28 +43,17 @@ func (pr *ProgressReporter) BytesWritten() uint64 {
 	return atomic.LoadUint64(&pr.written)
 }
 
-// min returns the minimum value of all uint64s provided
-func min(n1 uint64, n2 ...uint64) uint64 {
-	m := n1
-	for _, n := range n2 {
-		if n < n1 {
-			m = n
-		}
-	}
-	return m
-}
-
 // Report prints the progress reporter to the reporter
 // out to the terminal in an infinte loop,
 // designed to be run in a goroutine from a command.
 // Prints about once per second, or when the application
 // is being shut down.
 func (pr *ProgressReporter) Report(start time.Time) {
-	eachSecond := time.Tick(time.Second)
+	eachSecond := time.NewTicker(time.Second)
 	for {
 		select {
 		case <-pr.shutdown:
-		case <-eachSecond:
+		case <-eachSecond.C:
 		}
 		elapsed := time.Since(start)
 		bytesRead := pr.BytesRead()

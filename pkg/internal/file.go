@@ -1,4 +1,4 @@
-package main
+package internal
 
 import (
 	"fmt"
@@ -26,9 +26,9 @@ func formatSize(s uint64) string {
 	}
 }
 
-// sizeOf returns the size of the file at given path
+// SizeOf returns the size of the file at given path
 // in bytes as reported by the os
-func sizeOf(path string) uint64 {
+func SizeOf(path string) uint64 {
 	f, err := os.Open(path)
 	if err != nil {
 		panic(err)

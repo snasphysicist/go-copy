@@ -1,4 +1,4 @@
-package main
+package internal
 
 import (
 	"io"
@@ -11,10 +11,18 @@ import (
 // & reporting on the progress thereof
 type Reader struct {
 	path       string
-	b          *buffer
+	b          rbuffer
 	done       chan struct{}
 	pr         *ProgressReporter
 	toTransfer uint64
+}
+
+func NewReader(path string, b rbuffer, done chan struct{}, pr *ProgressReporter, toTransfer uint64) Reader {
+	return Reader{path: path, b: b, done: done, pr: pr, toTransfer: toTransfer}
+}
+
+type rbuffer interface {
+	Offer([]byte) bool
 }
 
 // Start will uninterruptably start the reader
@@ -44,9 +52,9 @@ func (r *Reader) Start() {
 			panic(err)
 		}
 		if n > 0 {
-			success := r.b.offer(buf[:n])
+			success := r.b.Offer(buf[:n])
 			for !success {
-				success = r.b.offer(buf[:n])
+				success = r.b.Offer(buf[:n])
 				time.Sleep(1 * time.Millisecond)
 			}
 		}

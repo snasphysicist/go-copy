@@ -1,4 +1,4 @@
-package main
+package internal
 
 import (
 	"os"
@@ -14,10 +14,18 @@ const syncEachBytes = uint64(1000000)
 // & reporting on the progress thereof
 type Writer struct {
 	path       string
-	b          *buffer
+	b          wbuffer
 	done       chan struct{}
 	pr         *ProgressReporter
 	toTransfer uint64
+}
+
+func NewWriter(path string, b wbuffer, done chan struct{}, pr *ProgressReporter, toTransfer uint64) Writer {
+	return Writer{path: path, b: b, done: done, pr: pr, toTransfer: toTransfer}
+}
+
+type wbuffer interface {
+	Pop() ([]byte, error)
 }
 
 // Start starts the writer writing to the output
@@ -36,7 +44,7 @@ func (w *Writer) Start() {
 	defer writeF.Close()
 	syncIncrement := uint64(0)
 	for {
-		next, err := w.b.pop()
+		next, err := w.b.Pop()
 		n := len(next)
 		if n == 0 {
 			time.Sleep(1 * time.Millisecond)

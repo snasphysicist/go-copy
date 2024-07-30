@@ -1,32 +1,32 @@
-package main
+package command
 
 import (
 	"flag"
 	"time"
+
+	"github.com/snasphysicist/go-copy/pkg/internal"
 )
 
-func cp() {
+// bufferSize is the default bufer size, around 100MB
+const bufferSize = 100 * 1024 * 1024
+
+func Copy() {
 	arguments := parseFlags()
 	from := arguments.from
 	to := arguments.to
 
-	s := sizeOf(from)
+	s := internal.SizeOf(from)
 
-	crossBuffer := newBuffer()
+	crossBuffer := internal.NewBuffer(bufferSize)
 
 	shutdown := make(chan struct{})
 
 	readerDone := make(chan struct{})
 	writerDone := make(chan struct{})
 
-	pr := ProgressReporter{
-		read:       0,
-		written:    0,
-		toTransfer: s,
-		shutdown:   shutdown,
-	}
-	reader := Reader{path: from, b: &crossBuffer, done: readerDone, pr: &pr, toTransfer: s}
-	writer := Writer{path: to, b: &crossBuffer, done: writerDone, pr: &pr, toTransfer: s}
+	pr := internal.NewProgressReporter(s, shutdown)
+	reader := internal.NewReader(from, &crossBuffer, readerDone, &pr, s)
+	writer := internal.NewWriter(to, &crossBuffer, readerDone, &pr, s)
 
 	go pr.Report(time.Now())
 	go reader.Start()
