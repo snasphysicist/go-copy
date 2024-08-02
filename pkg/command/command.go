@@ -10,6 +10,7 @@ import (
 // bufferSize is the default bufer size, around 100MB
 const bufferSize = 100 * 1024 * 1024
 
+// Copy implements the copy command, to copy a single source file to a single destination
 func Copy() {
 	arguments := parseFlags()
 	from := arguments.from
@@ -39,11 +40,14 @@ func Copy() {
 	time.Sleep(10 * time.Millisecond)
 }
 
+// arguments contains the parsed and validated arguments to the Copy command
 type arguments struct {
 	from string
 	to   string
 }
 
+// parseFlags extracts the flags/arguments for the Copy command
+// panicing if anything is invalid or missing
 func parseFlags() arguments {
 	var a arguments
 	flag.StringVar(&a.from, "from", "", "source file to be copied")
