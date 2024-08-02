@@ -5,10 +5,10 @@ import (
 	"os"
 )
 
-// formatSize takes a size in bytes and
+// FormatSize takes a size in bytes and
 // returns a human readable representation
 // like 165mb (with the number never exceeding 1024)
-func formatSize(s uint64) string {
+func FormatSize(s uint64) string {
 	sf := float64(s)
 	unitEvolution := map[string]string{
 		"b":  "kb",
@@ -17,7 +17,7 @@ func formatSize(s uint64) string {
 	}
 	unit := "b"
 	for {
-		if sf <= 1024.0 {
+		if sf < 1024.0 {
 			return fmt.Sprintf("%.2f%s", sf, unit)
 		}
 		unit = unitEvolution[unit]

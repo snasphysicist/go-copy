@@ -62,9 +62,9 @@ func (pr *ProgressReporter) Report(start time.Time) {
 		remaining := (float64(pr.toTransfer) - float64(min(bytesRead, bytesWritten))) / rate
 		print("\r")
 		print(
-			"Read ", formatSize(bytesRead),
-			" Written ", formatSize(bytesWritten),
-			" Speed ", formatSize(uint64(rate)), "/s",
+			"Read ", FormatSize(bytesRead),
+			" Written ", FormatSize(bytesWritten),
+			" Speed ", FormatSize(uint64(rate)), "/s",
 			" Elapsed ", elapsed.Round(1*time.Second).String(),
 			" Remaining ", (time.Duration(remaining) * time.Second).String(),
 			"             ",
