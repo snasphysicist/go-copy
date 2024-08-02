@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-// Writer implements reading of the input
+// Reader implements reading of the input into a buffer
 // & reporting on the progress thereof
 type Reader struct {
 	path       string
@@ -17,10 +17,14 @@ type Reader struct {
 	toTransfer uint64
 }
 
+// NewReader creates a new Reader, reading from the file at path into the buffer b,
+// signalling when it's done on done, reporting progress to pr,
+// and knowing when its done when it has transferred toTransfer bytes
 func NewReader(path string, b rbuffer, done chan struct{}, pr *ProgressReporter, toTransfer uint64) Reader {
 	return Reader{path: path, b: b, done: done, pr: pr, toTransfer: toTransfer}
 }
 
+// rbuffer has the required method on the buffer that the Reader reads into
 type rbuffer interface {
 	Offer([]byte) bool
 }
