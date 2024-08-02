@@ -33,7 +33,7 @@ func (b *buffer) Offer(byt []byte) bool {
 func (b *buffer) Pop() ([]byte, error) {
 	b.l.Lock()
 	defer b.l.Unlock()
-	n := min(1024, uint64(len(b.b)))
+	n := Minimum(1024, uint64(len(b.b)))
 	toPop := b.b[:n]
 	b.b = b.b[n:]
 	return toPop, nil
