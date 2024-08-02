@@ -53,7 +53,6 @@ func (w *Writer) Start() {
 		if n == 0 {
 			time.Sleep(1 * time.Millisecond)
 		}
-		time.Sleep(100 * time.Millisecond)
 		if err == nil {
 			writeF.Write(next)
 			w.pr.ReportBytesWritten(uint64(n))
