@@ -10,7 +10,7 @@ import (
 // force to flush to disk
 const syncEachBytes = uint64(1000000)
 
-// Writer implements writing of the output
+// Writer implements writing of the output taking it from the buffer
 // & reporting on the progress thereof
 type Writer struct {
 	path       string
@@ -20,10 +20,14 @@ type Writer struct {
 	toTransfer uint64
 }
 
+// NewWriter creates a new Writer, writing to the file at path from the buffer b,
+// signalling when it's done on done, reporting progress to pr,
+// and knowing when its done when it has transferred toTransfer bytes
 func NewWriter(path string, b wbuffer, done chan struct{}, pr *ProgressReporter, toTransfer uint64) Writer {
 	return Writer{path: path, b: b, done: done, pr: pr, toTransfer: toTransfer}
 }
 
+// wbuffer has the required method on the buffer that the Writer takes from
 type wbuffer interface {
 	Pop() ([]byte, error)
 }
