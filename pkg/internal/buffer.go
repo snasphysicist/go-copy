@@ -15,7 +15,7 @@ func NewBuffer(size uint64) buffer {
 	return buffer{b: make([]byte, 0), max: size, l: &sync.Mutex{}}
 }
 
-// offer attempts to add the provided bytes to the buffer,
+// Offer attempts to add the provided bytes to the buffer,
 // returning true on success (there was room)
 // and false on failure (there was not room)
 func (b *buffer) Offer(byt []byte) bool {
@@ -28,7 +28,7 @@ func (b *buffer) Offer(byt []byte) bool {
 	return true
 }
 
-// pop returns the first available up to 1024 bytes
+// Pop returns the first available up to 1024 bytes
 // from the buffer, and removes them from the buffer
 func (b *buffer) Pop() ([]byte, error) {
 	b.l.Lock()
