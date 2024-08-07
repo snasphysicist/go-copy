@@ -1,7 +1,7 @@
 package internal
 
 import (
-	"os"
+	"io"
 	"time"
 )
 
@@ -13,7 +13,7 @@ const syncEachBytes = uint64(1000000)
 // Writer implements writing of the output taking it from the buffer
 // & reporting on the progress thereof
 type Writer struct {
-	path       string
+	target     target
 	b          wbuffer
 	done       chan struct{}
 	pr         *ProgressReporter
@@ -23,13 +23,24 @@ type Writer struct {
 // NewWriter creates a new Writer, writing to the file at path from the buffer b,
 // signalling when it's done on done, reporting progress to pr,
 // and knowing when its done when it has transferred toTransfer bytes
-func NewWriter(path string, b wbuffer, done chan struct{}, pr *ProgressReporter, toTransfer uint64) Writer {
-	return Writer{path: path, b: b, done: done, pr: pr, toTransfer: toTransfer}
+func NewWriter(target target, b wbuffer, done chan struct{}, pr *ProgressReporter, toTransfer uint64) Writer {
+	return Writer{target: target, b: b, done: done, pr: pr, toTransfer: toTransfer}
 }
 
 // wbuffer has the required method on the buffer that the Writer takes from
 type wbuffer interface {
 	Pop() ([]byte, error)
+}
+
+type target interface {
+	// Initialise prepares the destination
+	// before any bytes are written to it
+	Initialise() error
+	// Sync forces any bytes held in a
+	// buffer by the target writer to be
+	// flushed to the destination (e.g. os.File.Sync())
+	Sync() error
+	io.WriteCloser
 }
 
 // Start starts the writer writing to the output
@@ -40,12 +51,11 @@ type wbuffer interface {
 // as it goes, and will close done when it has
 // written out toTransfer bytes.
 func (w *Writer) Start() {
-	os.Remove(w.path)
-	writeF, err := os.Create(w.path)
+	err := w.target.Initialise()
 	if err != nil {
 		panic(err)
 	}
-	defer writeF.Close()
+	defer w.target.Close()
 	syncIncrement := uint64(0)
 	for {
 		next, err := w.b.Pop()
@@ -54,12 +64,12 @@ func (w *Writer) Start() {
 			time.Sleep(1 * time.Millisecond)
 		}
 		if err == nil {
-			writeF.Write(next)
+			w.target.Write(next)
 			w.pr.ReportBytesWritten(uint64(n))
 		}
 		newSyncIncrement := w.pr.BytesWritten() / syncEachBytes
 		if syncIncrement != newSyncIncrement {
-			writeF.Sync()
+			w.target.Sync()
 			syncIncrement = newSyncIncrement
 		}
 		if w.pr.BytesWritten() == w.toTransfer {

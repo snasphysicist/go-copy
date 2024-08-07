@@ -27,7 +27,8 @@ func Copy() {
 
 	pr := internal.NewProgressReporter(s, shutdown)
 	reader := internal.NewReader(from, &crossBuffer, readerDone, &pr, s)
-	writer := internal.NewWriter(to, &crossBuffer, readerDone, &pr, s)
+	writingFile := internal.NewWritingFile(to)
+	writer := internal.NewWriter(&writingFile, &crossBuffer, readerDone, &pr, s)
 
 	go pr.Report(time.Now())
 	go reader.Start()
