@@ -10,6 +10,11 @@ import (
 // bufferSize is the default bufer size, around 100MB
 const bufferSize = 100 * 1024 * 1024
 
+// syncEachBytes specifies after approximately
+// how many written bytes we will try to
+// force to flush to disk
+const syncEachBytes = uint64(1000000)
+
 // Copy implements the copy command, to copy a single source file to a single destination
 func Copy() {
 	arguments := parseFlags()
@@ -28,7 +33,7 @@ func Copy() {
 	pr := internal.NewProgressReporter(s, shutdown)
 	reader := internal.NewReader(from, &crossBuffer, readerDone, &pr, s)
 	writingFile := internal.NewWritingFile(to)
-	writer := internal.NewWriter(&writingFile, &crossBuffer, readerDone, &pr, s)
+	writer := internal.NewWriter(&writingFile, &crossBuffer, readerDone, &pr, s, syncEachBytes)
 
 	go pr.Report(time.Now())
 	go reader.Start()

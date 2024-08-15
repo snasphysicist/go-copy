@@ -5,11 +5,6 @@ import (
 	"time"
 )
 
-// syncEachBytes specifies after approximately
-// how many written bytes we will try to
-// force to flush to disk
-const syncEachBytes = uint64(1000000)
-
 // Writer implements writing of the output taking it from the buffer
 // & reporting on the progress thereof
 type Writer struct {
@@ -18,13 +13,14 @@ type Writer struct {
 	done       chan struct{}
 	pr         *ProgressReporter
 	toTransfer uint64
+	syncEach   uint64
 }
 
 // NewWriter creates a new Writer, writing to the file at path from the buffer b,
 // signalling when it's done on done, reporting progress to pr,
 // and knowing when its done when it has transferred toTransfer bytes
-func NewWriter(target target, b wbuffer, done chan struct{}, pr *ProgressReporter, toTransfer uint64) Writer {
-	return Writer{target: target, b: b, done: done, pr: pr, toTransfer: toTransfer}
+func NewWriter(target target, b wbuffer, done chan struct{}, pr *ProgressReporter, toTransfer uint64, syncEach uint64) Writer {
+	return Writer{target: target, b: b, done: done, pr: pr, toTransfer: toTransfer, syncEach: syncEach}
 }
 
 // wbuffer has the required method on the buffer that the Writer takes from
@@ -67,12 +63,12 @@ func (w *Writer) Start() {
 			w.target.Write(next)
 			w.pr.ReportBytesWritten(uint64(n))
 		}
-		newSyncIncrement := w.pr.BytesWritten() / syncEachBytes
+		newSyncIncrement := w.pr.BytesWritten() / w.syncEach
 		if syncIncrement != newSyncIncrement {
 			w.target.Sync()
 			syncIncrement = newSyncIncrement
 		}
-		if w.pr.BytesWritten() == w.toTransfer {
+		if w.pr.BytesWritten() >= w.toTransfer {
 			close(w.done)
 			return
 		}
