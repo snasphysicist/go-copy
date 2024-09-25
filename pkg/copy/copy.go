@@ -23,7 +23,7 @@ func FileToFile(from string, to string, bufferSizeBytes uint64, syncEachBytes ui
 	readingFile := internal.NewSourceFile(from)
 	reader := internal.NewReader(&readingFile, &crossBuffer, readerDone, &pr, s)
 	writingFile := internal.NewWritingFile(to)
-	writer := internal.NewWriter(&writingFile, &crossBuffer, readerDone, &pr, s, syncEachBytes)
+	writer := internal.NewWriter(&writingFile, &crossBuffer, writerDone, &pr, s, syncEachBytes)
 
 	go pr.Report(time.Now())
 	go reader.Start()
