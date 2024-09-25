@@ -8,7 +8,7 @@ import (
 // Writer implements writing of the output taking it from the buffer
 // & reporting on the progress thereof
 type Writer struct {
-	target     target
+	target     wtarget
 	b          wbuffer
 	done       chan struct{}
 	pr         *ProgressReporter
@@ -18,8 +18,10 @@ type Writer struct {
 
 // NewWriter creates a new Writer, writing to the file at path from the buffer b,
 // signalling when it's done on done, reporting progress to pr,
-// and knowing when its done when it has transferred toTransfer bytes
-func NewWriter(target target, b wbuffer, done chan struct{}, pr *ProgressReporter, toTransfer uint64, syncEach uint64) Writer {
+// and knowing when its done when it has transferred toTransfer bytes.
+// When at least each syncEach bytes have been transferred,
+// Sync will be called on the wbuffer to flush to the underlying storage.
+func NewWriter(target wtarget, b wbuffer, done chan struct{}, pr *ProgressReporter, toTransfer uint64, syncEach uint64) Writer {
 	return Writer{target: target, b: b, done: done, pr: pr, toTransfer: toTransfer, syncEach: syncEach}
 }
 
@@ -28,7 +30,7 @@ type wbuffer interface {
 	Pop() ([]byte, error)
 }
 
-type target interface {
+type wtarget interface {
 	// Initialise prepares the destination
 	// before any bytes are written to it
 	Initialise() error

@@ -29,8 +29,6 @@ func (t *mockTarget) Sync() error {
 	return nil
 }
 
-// io.WriteCloser
-
 func (t *mockTarget) Close() error {
 	t.wasClosed = true
 	return nil

@@ -31,7 +31,8 @@ func Copy() {
 	writerDone := make(chan struct{})
 
 	pr := internal.NewProgressReporter(s, shutdown)
-	reader := internal.NewReader(from, &crossBuffer, readerDone, &pr, s)
+	readingFile := internal.NewSourceFile(from)
+	reader := internal.NewReader(&readingFile, &crossBuffer, readerDone, &pr, s)
 	writingFile := internal.NewWritingFile(to)
 	writer := internal.NewWriter(&writingFile, &crossBuffer, readerDone, &pr, s, syncEachBytes)
 
