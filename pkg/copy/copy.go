@@ -21,7 +21,7 @@ func FileToFile(from string, to string, bufferSizeBytes uint64, syncEachBytes ui
 
 	pr := internal.NewProgressReporter(s, shutdown)
 	readingFile := internal.NewSourceFile(from)
-	reader := internal.NewReader(&readingFile, &crossBuffer, readerDone, &pr, s)
+	reader := internal.NewReader(&readingFile, &crossBuffer, readerDone, &pr, s, internal.Minimum(1000, bufferSizeBytes))
 	writingFile := internal.NewWritingFile(to)
 	writer := internal.NewWriter(&writingFile, &crossBuffer, writerDone, &pr, s, syncEachBytes)
 

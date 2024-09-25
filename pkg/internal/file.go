@@ -14,6 +14,11 @@ func FormatSize(s uint64) string {
 		"b":  "kb",
 		"kb": "mb",
 		"mb": "gb",
+		"gb": "tb",
+		"tb": "pb",
+		"pb": "eb",
+		"eb": "zb",
+		"zb": "yb",
 	}
 	unit := "b"
 	for {

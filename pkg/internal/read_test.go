@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/snasphysicist/go-copy/pkg/internal"
+	"github.com/snasphysicist/go-copy/pkg/random"
 )
 
 // mockSource is a source for the reader
@@ -80,7 +81,7 @@ func TestReaderOpensSourceFirst(t *testing.T) {
 	ms := mockSource{toRead: &rw}
 	b := internal.NewBuffer(100)
 	pr := internal.NewProgressReporter(10, done)
-	r := internal.NewReader(&ms, &b, done, &pr, 10)
+	r := internal.NewReader(&ms, &b, done, &pr, 10, 1)
 	defer ensureStopped(&ReadWriterAsAcceptor{rw: bb}, done)
 	defer func() { (&rw).err = io.EOF }()
 	go r.Start()
@@ -96,19 +97,19 @@ func TestReaderClosesSourceWhenTargetNumberOfBytesRead(t *testing.T) {
 	ms := mockSource{toRead: &rw}
 	b := internal.NewBuffer(100)
 	pr := internal.NewProgressReporter(10, done)
-	r := internal.NewReader(&ms, &b, done, &pr, 10)
+	r := internal.NewReader(&ms, &b, done, &pr, 10, 1)
 	defer ensureStopped(&b, done)
 	defer func() { (&rw).err = io.EOF }()
 	go r.Start()
 	if ms.closed {
 		t.Error("Reader closed the source without anything being read")
 	}
-	ms.toRead.Write(randomBytes(9))
+	ms.toRead.Write(random.Bytes(9))
 	await(func() bool { return pr.BytesRead() == 9 }, time.Second)
 	if ms.closed {
 		t.Error("Reader closed the source after only 9 bytes read, should wait until 10")
 	}
-	ms.toRead.Write(randomBytes(1))
+	ms.toRead.Write(random.Bytes(1))
 	rw.err = io.EOF
 	await(func() bool { return ms.closed }, time.Second)
 	if !ms.closed {
@@ -122,14 +123,14 @@ func TestReaderStopsEarlyAndClosesSourceWhenEOFFromSourceReader(t *testing.T) {
 	ms := mockSource{toRead: &rw}
 	b := internal.NewBuffer(100)
 	pr := internal.NewProgressReporter(10, done)
-	r := internal.NewReader(&ms, &b, done, &pr, 10)
+	r := internal.NewReader(&ms, &b, done, &pr, 10, 1)
 	defer ensureStopped(&b, done)
 	defer func() { (&rw).err = io.EOF }()
 	go r.Start()
 	if ms.closed {
 		t.Error("Reader closed the source without anything being read")
 	}
-	ms.toRead.Write(randomBytes(9))
+	ms.toRead.Write(random.Bytes(9))
 	await(func() bool { return pr.BytesRead() == 9 }, time.Second)
 	if ms.closed {
 		t.Error("Reader closed the source after only 9 bytes read, should wait until 10")
@@ -147,14 +148,14 @@ func TestReaderOffersReadBytesToBuffer(t *testing.T) {
 	ms := mockSource{toRead: &rw}
 	b := internal.NewBuffer(100)
 	pr := internal.NewProgressReporter(10, done)
-	r := internal.NewReader(&ms, &b, done, &pr, 10)
+	r := internal.NewReader(&ms, &b, done, &pr, 10, 1)
 	defer ensureStopped(&b, done)
 	defer func() { (&rw).err = io.EOF }()
 	go r.Start()
 	if ms.closed {
 		t.Error("Reader closed the source without anything being read")
 	}
-	bytesIn := randomBytes(9)
+	bytesIn := random.Bytes(9)
 	_, _ = rw.rw.Write(bytesIn)
 	await(func() bool { return pr.BytesRead() == 9 }, time.Second)
 	bytesOut, _ := b.Pop()
@@ -173,14 +174,14 @@ func TestReaderReportsNumberOfBytesReadToProgressReporter(t *testing.T) {
 	ms := mockSource{toRead: &rw}
 	b := internal.NewBuffer(100)
 	pr := internal.NewProgressReporter(10, done)
-	r := internal.NewReader(&ms, &b, done, &pr, 10)
+	r := internal.NewReader(&ms, &b, done, &pr, 10, 1)
 	defer ensureStopped(&b, done)
 	defer func() { (&rw).err = io.EOF }()
 	go r.Start()
 	if ms.closed {
 		t.Error("Reader closed the source without anything being read")
 	}
-	bytesIn := randomBytes(4)
+	bytesIn := random.Bytes(4)
 	_, _ = rw.rw.Write(bytesIn)
 	await(func() bool { return pr.BytesRead() == uint64(len(bytesIn)) }, time.Second)
 	if pr.BytesRead() != uint64(len(bytesIn)) {

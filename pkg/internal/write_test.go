@@ -1,12 +1,12 @@
 package internal_test
 
 import (
-	"math/rand"
 	"reflect"
 	"testing"
 	"time"
 
 	"github.com/snasphysicist/go-copy/pkg/internal"
+	"github.com/snasphysicist/go-copy/pkg/random"
 )
 
 type mockTarget struct {
@@ -95,12 +95,6 @@ func TestWriterInitialisesTarget(t *testing.T) {
 	}
 }
 
-func randomBytes(n int) []byte {
-	b := make([]byte, n)
-	rand.Read(b)
-	return b
-}
-
 func TestWriterTakesFromBufferPutsToTargetWhenAvailable(t *testing.T) {
 	done := make(chan struct{})
 	mt := mockTarget{}
@@ -115,13 +109,13 @@ func TestWriterTakesFromBufferPutsToTargetWhenAvailable(t *testing.T) {
 	)
 	defer ensureStopped(&b, done)
 	go w.Start()
-	firstData := randomBytes(50)
+	firstData := random.Bytes(50)
 	b.Offer(firstData)
 	await(func() bool { return len(mt.buffer) == 50 }, 2*time.Second)
 	if !(len(mt.buffer) == 50) {
 		t.Errorf("Expected 50 bytes taken by writer, actually %d", len(mt.buffer))
 	}
-	secondData := randomBytes(22)
+	secondData := random.Bytes(22)
 	b.Offer(secondData)
 	await(func() bool { return len(mt.buffer) == 72 }, 2*time.Second)
 	if !(len(mt.buffer) == 72) {
@@ -150,7 +144,7 @@ func TestWriterReportsWrittenBytesToProgressReporter(t *testing.T) {
 	)
 	defer ensureStopped(&b, done)
 	go w.Start()
-	firstData := randomBytes(50)
+	firstData := random.Bytes(50)
 	b.Offer(firstData)
 	await(func() bool { return pr.BytesWritten() == 50 }, 2*time.Second)
 	if !(pr.BytesWritten() == 50) {
@@ -173,21 +167,21 @@ func TestWriterSyncsWhenEnoughBytesTakenFromBuffer(t *testing.T) {
 	)
 	defer ensureStopped(&b, done)
 	go w.Start()
-	b.Offer(randomBytes(15))
+	b.Offer(random.Bytes(15))
 	await(func() bool { return len(mt.destination) == 15 }, 2*time.Second)
 	if !(len(mt.destination) == 15) || !(len(mt.buffer) == 0) {
 		t.Errorf("%d bytes in destination, %d in buffer, should be 15 and 0 after sync",
 			len(mt.destination), len(mt.buffer),
 		)
 	}
-	b.Offer(randomBytes(14))
+	b.Offer(random.Bytes(14))
 	await(func() bool { return len(mt.buffer) != 0 }, 2*time.Second)
 	if !(len(mt.destination) == 15) || !(len(mt.buffer) == 14) {
 		t.Errorf("%d bytes in destination, %d in buffer, should be 15 and 14 after just one sync",
 			len(mt.destination), len(mt.buffer),
 		)
 	}
-	b.Offer(randomBytes(2))
+	b.Offer(random.Bytes(2))
 	await(func() bool { return len(mt.destination) == 31 }, 2*time.Second)
 	if !(len(mt.destination) == 31) || !(len(mt.buffer) == 0) {
 		t.Errorf("%d bytes in destination, %d in buffer, should be 31 and 0 after just second sync",
@@ -212,7 +206,7 @@ func TestWriterClosesTargetWhenTargetBytesWritten(t *testing.T) {
 	defer ensureStopped(&b, done)
 	go w.Start()
 	await(func() bool {
-		b.Offer(randomBytes(1))
+		b.Offer(random.Bytes(1))
 		time.Sleep(10 * time.Millisecond)
 		return mt.wasClosed
 	}, 2*time.Second)
