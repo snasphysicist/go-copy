@@ -2,13 +2,12 @@ package command
 
 import (
 	"flag"
-	"time"
 
-	"github.com/snasphysicist/go-copy/pkg/internal"
+	"github.com/snasphysicist/go-copy/pkg/copy"
 )
 
-// bufferSize is the default bufer size, around 100MB
-const bufferSize = 100 * 1024 * 1024
+// bufferSizeBytes is the default bufer size, around 100MB
+const bufferSizeBytes = 100 * 1024 * 1024
 
 // syncEachBytes specifies after approximately
 // how many written bytes we will try to
@@ -20,31 +19,7 @@ func Copy() {
 	arguments := parseFlags()
 	from := arguments.from
 	to := arguments.to
-
-	s := internal.SizeOf(from)
-
-	crossBuffer := internal.NewBuffer(bufferSize)
-
-	shutdown := make(chan struct{})
-
-	readerDone := make(chan struct{})
-	writerDone := make(chan struct{})
-
-	pr := internal.NewProgressReporter(s, shutdown)
-	readingFile := internal.NewSourceFile(from)
-	reader := internal.NewReader(&readingFile, &crossBuffer, readerDone, &pr, s)
-	writingFile := internal.NewWritingFile(to)
-	writer := internal.NewWriter(&writingFile, &crossBuffer, readerDone, &pr, s, syncEachBytes)
-
-	go pr.Report(time.Now())
-	go reader.Start()
-	go writer.Start()
-
-	<-readerDone
-	<-writerDone
-
-	close(shutdown)
-	time.Sleep(10 * time.Millisecond)
+	copy.FileToFile(from, to, bufferSizeBytes, syncEachBytes)
 }
 
 // arguments contains the parsed and validated arguments to the Copy command
