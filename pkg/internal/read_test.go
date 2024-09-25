@@ -9,46 +9,67 @@ import (
 	"github.com/snasphysicist/go-copy/pkg/internal"
 )
 
+// mockSource is a source for the reader
+// which allows us to inject a io.ReadWriter
+// to imitate the actual source of bytes,
+// also tracks whether it has been
+// opened and/or closed
 type mockSource struct {
 	opened bool
 	closed bool
 	toRead io.ReadWriter
 }
 
+// mockReadWriter wraps an io.ReadWriter
+// and allows us to inject and error for testing
 type mockReadWriter struct {
 	rw  io.ReadWriter
 	err error
 }
 
+// Write implements io.ReadWriter on mockReadWriter,
+// passes through to mockReadWriter's rw
 func (rw *mockReadWriter) Write(b []byte) (int, error) {
 	return rw.rw.Write(b)
 }
 
+// Read implements io.ReadWriter on mockReadWriter,
+// passes through to mockReadWriter's rw
 func (rw *mockReadWriter) Read(b []byte) (int, error) {
 	n, _ := rw.rw.Read(b)
 	return n, rw.err
 }
 
+// Open implements rsource on mockSource,
+// never errors and records that it was called
 func (ms *mockSource) Open() error {
 	ms.opened = true
 	return nil
 }
 
+// Close implements rsource on mockSource,
+// never errors and records that it was called
 func (ms *mockSource) Close() error {
 	ms.closed = true
 	return nil
 }
 
+// Read implements rsource on mockSource,
+// passes through to mockSource's toRead
 func (ms *mockSource) Read(b []byte) (int, error) {
 	return ms.toRead.Read(b)
 }
 
+// ReadWriterAsAcceptor adapts an io.ReadWriter
+// to be used as an Acceptor in ensureStopped
 type ReadWriterAsAcceptor struct {
 	rw io.ReadWriter
 }
 
+// Offer implements Acceptor on ReadWriterAsAcceptor
+// passing through to the wrapped Write & always returning true
 func (rwaa *ReadWriterAsAcceptor) Offer(b []byte) bool {
-	rwaa.rw.Write(b)
+	_, _ = rwaa.rw.Write(b)
 	return true
 }
 
