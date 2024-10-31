@@ -75,9 +75,7 @@ func (r *Reader) Start() {
 			close(r.done)
 			return
 		}
-		if err != nil && err != io.EOF {
-			panic(err)
-		}
+		panicing.OnError(err)
 		if n > 0 {
 			success := r.b.Offer(buf[:n])
 			for !success {
