@@ -55,6 +55,18 @@ type rsource interface {
 	io.ReadCloser
 }
 
+// forceTransferBuffer offers the n first bytes of buf
+// to r.b in a loop until they are accepted
+func (r *Reader) forceTransferBuffer(n int, buf []byte) {
+	if n > 0 {
+		success := r.b.Offer(buf[:n])
+		for !success {
+			success = r.b.Offer(buf[:n])
+			time.Sleep(1 * time.Millisecond)
+		}
+	}
+}
+
 // Start will uninterruptably start the reader
 // reading the input and moving the contents to the buffer.
 // It reports progress to the progress reporter as it reads,
@@ -76,13 +88,7 @@ func (r *Reader) Start() {
 			return
 		}
 		panicing.OnError(err)
-		if n > 0 {
-			success := r.b.Offer(buf[:n])
-			for !success {
-				success = r.b.Offer(buf[:n])
-				time.Sleep(1 * time.Millisecond)
-			}
-		}
+		r.forceTransferBuffer(n, buf)
 		r.pr.ReportBytesRead(uint64(n))
 	}
 }
