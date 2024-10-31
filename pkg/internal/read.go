@@ -4,6 +4,8 @@ import (
 	"io"
 	"log"
 	"time"
+
+	"github.com/snasphysicist/go-copy/pkg/panicing"
 )
 
 // Reader implements reading of the input into a buffer
@@ -62,7 +64,7 @@ func (r *Reader) Start() {
 	if err != nil {
 		panic(err)
 	}
-	defer func() { PanicOnError(r.source.Close()) }()
+	defer func() { panicing.OnError(r.source.Close()) }()
 	for {
 		buf := make([]byte, r.bufferSizeBytes)
 		n, err := r.source.Read(buf)

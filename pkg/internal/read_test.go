@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/snasphysicist/go-copy/pkg/internal"
+	"github.com/snasphysicist/go-copy/pkg/panicing"
 	"github.com/snasphysicist/go-copy/pkg/random"
 )
 
@@ -104,12 +105,12 @@ func TestReaderClosesSourceWhenTargetNumberOfBytesRead(t *testing.T) {
 	if ms.closed {
 		t.Error("Reader closed the source without anything being read")
 	}
-	internal.PanicOnWriteError(ms.toRead.Write(random.Bytes(9)))
+	panicing.OnWriteError(ms.toRead.Write(random.Bytes(9)))
 	await(func() bool { return pr.BytesRead() == 9 }, time.Second)
 	if ms.closed {
 		t.Error("Reader closed the source after only 9 bytes read, should wait until 10")
 	}
-	internal.PanicOnWriteError(ms.toRead.Write(random.Bytes(1)))
+	panicing.OnWriteError(ms.toRead.Write(random.Bytes(1)))
 	rw.err = io.EOF
 	await(func() bool { return ms.closed }, time.Second)
 	if !ms.closed {
@@ -130,7 +131,7 @@ func TestReaderStopsEarlyAndClosesSourceWhenEOFFromSourceReader(t *testing.T) {
 	if ms.closed {
 		t.Error("Reader closed the source without anything being read")
 	}
-	internal.PanicOnWriteError(ms.toRead.Write(random.Bytes(9)))
+	panicing.OnWriteError(ms.toRead.Write(random.Bytes(9)))
 	await(func() bool { return pr.BytesRead() == 9 }, time.Second)
 	if ms.closed {
 		t.Error("Reader closed the source after only 9 bytes read, should wait until 10")

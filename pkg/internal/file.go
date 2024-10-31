@@ -3,6 +3,8 @@ package internal
 import (
 	"fmt"
 	"os"
+
+	"github.com/snasphysicist/go-copy/pkg/panicing"
 )
 
 // FormatSize takes a size in bytes and
@@ -38,7 +40,7 @@ func SizeOf(path string) uint64 {
 	if err != nil {
 		panic(err)
 	}
-	defer func() { PanicOnError(f.Close()) }()
+	defer func() { panicing.OnError(f.Close()) }()
 	fi, err := f.Stat()
 	if err != nil {
 		panic(err)

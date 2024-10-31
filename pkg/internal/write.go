@@ -3,6 +3,8 @@ package internal
 import (
 	"io"
 	"time"
+
+	"github.com/snasphysicist/go-copy/pkg/panicing"
 )
 
 // Writer implements writing of the output taking it from the buffer
@@ -53,7 +55,7 @@ func (w *Writer) Start() {
 	if err != nil {
 		panic(err)
 	}
-	defer func() { PanicOnError(w.target.Close()) }()
+	defer func() { panicing.OnError(w.target.Close()) }()
 	syncIncrement := uint64(0)
 	for {
 		next, err := w.b.Pop()
@@ -62,12 +64,12 @@ func (w *Writer) Start() {
 			time.Sleep(1 * time.Millisecond)
 		}
 		if err == nil {
-			PanicOnWriteError(w.target.Write(next))
+			panicing.OnWriteError(w.target.Write(next))
 			w.pr.ReportBytesWritten(uint64(n))
 		}
 		newSyncIncrement := w.pr.BytesWritten() / w.syncEach
 		if syncIncrement != newSyncIncrement {
-			PanicOnError(w.target.Sync())
+			panicing.OnError(w.target.Sync())
 			syncIncrement = newSyncIncrement
 		}
 		if w.pr.BytesWritten() >= w.toTransfer {
