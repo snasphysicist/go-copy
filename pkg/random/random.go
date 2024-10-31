@@ -1,6 +1,6 @@
 package random
 
-import "math/rand"
+import "crypto/rand"
 
 // Bytes returns n random bytes
 func Bytes(n int) []byte {
