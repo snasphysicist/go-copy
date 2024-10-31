@@ -38,7 +38,7 @@ func SizeOf(path string) uint64 {
 	if err != nil {
 		panic(err)
 	}
-	defer f.Close()
+	defer func() { PanicOnError(f.Close()) }()
 	fi, err := f.Stat()
 	if err != nil {
 		panic(err)

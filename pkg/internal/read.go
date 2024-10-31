@@ -62,7 +62,7 @@ func (r *Reader) Start() {
 	if err != nil {
 		panic(err)
 	}
-	defer r.source.Close()
+	defer func() { PanicOnError(r.source.Close()) }()
 	for {
 		buf := make([]byte, r.bufferSizeBytes)
 		n, err := r.source.Read(buf)

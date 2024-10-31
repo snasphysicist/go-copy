@@ -53,7 +53,7 @@ func (w *Writer) Start() {
 	if err != nil {
 		panic(err)
 	}
-	defer w.target.Close()
+	defer func() { PanicOnError(w.target.Close()) }()
 	syncIncrement := uint64(0)
 	for {
 		next, err := w.b.Pop()
@@ -62,12 +62,12 @@ func (w *Writer) Start() {
 			time.Sleep(1 * time.Millisecond)
 		}
 		if err == nil {
-			w.target.Write(next)
+			PanicOnWriteError(w.target.Write(next))
 			w.pr.ReportBytesWritten(uint64(n))
 		}
 		newSyncIncrement := w.pr.BytesWritten() / w.syncEach
 		if syncIncrement != newSyncIncrement {
-			w.target.Sync()
+			PanicOnError(w.target.Sync())
 			syncIncrement = newSyncIncrement
 		}
 		if w.pr.BytesWritten() >= w.toTransfer {
