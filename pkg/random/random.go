@@ -1,10 +1,14 @@
 package random
 
-import "crypto/rand"
+import (
+	"crypto/rand"
+
+	"github.com/snasphysicist/go-copy/pkg/panicing"
+)
 
 // Bytes returns n random bytes
 func Bytes(n int) []byte {
 	b := make([]byte, n)
-	rand.Read(b)
+	panicing.OnWriteError(rand.Read(b))
 	return b
 }
