@@ -60,10 +60,7 @@ type rsource interface {
 // It reports progress to the progress reporter as it reads,
 // and it closes the done channel when it has read toTransfer bytes.
 func (r *Reader) Start() {
-	err := r.source.Open()
-	if err != nil {
-		panic(err)
-	}
+	panicing.OnError(r.source.Open())
 	defer func() { panicing.OnError(r.source.Close()) }()
 	for {
 		buf := make([]byte, r.bufferSizeBytes)
